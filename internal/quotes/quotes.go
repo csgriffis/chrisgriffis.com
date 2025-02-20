@@ -29,17 +29,17 @@ type Quote struct {
 	CharacterDirection string `json:"characterDirection,omitempty"`
 }
 
-type quoteService struct {
+type Service struct {
 	baseUrl string
 }
 
-func NewQuoteService() *quoteService {
-	return &quoteService{
+func NewQuoteService() *Service {
+	return &Service{
 		baseUrl: "https://thesimpsonsquoteapi.glitch.me/quotes",
 	}
 }
 
-func (q *quoteService) GetQuote() ([]Quote, error) {
+func (q *Service) GetQuote() ([]Quote, error) {
 	req, err := http.NewRequest("GET", q.baseUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)

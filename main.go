@@ -24,7 +24,9 @@ import (
 	"os"
 	"strings"
 
+	"chrisgriffis.com/controller"
 	"chrisgriffis.com/internal/quotes"
+	"chrisgriffis.com/router"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
@@ -33,26 +35,8 @@ import (
 //go:embed views/*
 var viewsFS embed.FS
 
-type Linkable struct {
-	Title       string
-	Description string
-	Slug        string
-}
-
-type Project struct {
-	Linkable     Linkable
-	Technologies []string
-}
-
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	quoter := quotes.NewQuoteService()
 
 	engine := html.NewFileSystem(http.FS(viewsFS), ".html")
 	engine.AddFunc("Join", strings.Join)
@@ -62,70 +46,46 @@ func main() {
 	})
 	app.Static("/", "./public")
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Render("index", fiber.Map{
-			"Posts": []Linkable{
-				{
-					Title:       "Hello, World!",
-					Description: "This is a test of the emergency broadcast system.",
-					Slug:        "hello-world",
-				},
-				{
-					Title:       "Goodbye, World!",
-					Description: "This is a test of the emergency broadcast system.",
-					Slug:        "goodbye-world",
-				},
-			},
-			"Projects": []Project{
-				{
-					Linkable: Linkable{
-						Title:       "Project 1",
-						Description: "This is a test of the emergency broadcast system.",
-						Slug:        "project-1",
-					},
-					Technologies: []string{"Go", "Fiber", "HTML"},
-				},
-				{
-					Linkable: Linkable{
-						Title:       "Project 2",
-						Description: "This is a test of the emergency broadcast system.",
-						Slug:        "project-2",
-					},
-					Technologies: []string{"Go", "Fiber", "HTML"},
-				},
-				{
-					Linkable: Linkable{
-						Title:       "Project 3",
-						Description: "This is a test of the emergency broadcast system.",
-						Slug:        "project-3",
-					},
-					Technologies: []string{"Go", "Fiber", "HTML"},
-				},
-			},
-		}, "layouts/main")
-	})
+	quoter := quotes.NewQuoteService()
+	quoteCtrl := controller.MustQuote(controller.NewQuote(quoter))
 
-	app.Get("/whoami", func(c *fiber.Ctx) error {
-		return c.Render("whoami", fiber.Map{}, "layouts/main")
-	})
+	err := run(
+		app,
+		router.NewIndex(),
+		router.NewWhoami(),
+		router.RouteRegisterFunc(WithRoutePrefix("/api/v1")(router.NewQuotes(quoteCtrl))),
+	)
 
-	app.Get("/quote", func(c *fiber.Ctx) error {
-		quote, err := quoter.GetQuote()
-		if err != nil {
-			logger.Error("error getting quote", slog.Any("error", err))
-			return c.Status(http.StatusInternalServerError).SendString("Error getting quote")
+	if err != nil {
+		logger.Error("Error running app", slog.Any("error", err))
+	}
+}
+
+func WithRoutePrefix(prefix string) func(f router.RouteRegister) func(r fiber.Router) error {
+	return func(f router.RouteRegister) func(r fiber.Router) error {
+		return func(r fiber.Router) error {
+			r = r.Group(prefix)
+			return f.RegisterRoutes(r)
 		}
+	}
+}
 
-		if len(quote) == 0 {
-			logger.Error("no quotes returned")
-			return c.Status(http.StatusInternalServerError).SendString("No quotes returned")
+func run(app *fiber.App, routers ...router.RouteRegister) error {
+	// register provided routers
+	for _, r := range routers {
+		if err := r.RegisterRoutes(app); err != nil {
+			return fmt.Errorf("[RegisterRoutes] %w", err)
 		}
+	}
 
-		// Return the first quote
-		return c.JSON(quote[0])
-	})
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // default to 8080
+	}
 
 	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
-		logger.Error("Error starting server", slog.Any("error", err))
+		return fmt.Errorf("[Listen] %w", err)
 	}
+
+	return nil
 }

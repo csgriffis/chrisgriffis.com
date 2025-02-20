@@ -38,7 +38,7 @@
             fetchQuote() {
                 this.fetching = true;
 
-                fetch('/quote')
+                fetch('/api/v1/quote')
                     .then(response => response.json())
                     .then(data => {
                         this.quote = data.quote;
