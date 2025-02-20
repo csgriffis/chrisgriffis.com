@@ -1,0 +1,61 @@
+{{define "index"}}
+<!-- Recent Writings Section -->
+<section class="my-8">
+    <h2 class="text-3xl font-semibold mb-4 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor">
+            <g stroke-width="0"></g>
+            <g stroke-linecap="round" stroke-linejoin="round"></g>
+            <g>
+                <path d="M8 12H8.009M11.991 12H12M15.991 12H16" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"></path>
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z"
+                      stroke-width="1.5"></path>
+            </g>
+        </svg>
+        Recent Thoughts
+    </h2>
+    <hr/>
+    <ul class="space-y-4 my-4">
+        {{range .Posts}}
+        <li class="p-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-gray-500 cursor-pointer hover:scale-[1.1] transition duration-300">
+            <a href="/blog/{{.Slug}}">
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-200">{{.Title}}</h3>
+                <p class="text-gray-600 dark:text-gray-200">{{.Description}}</p>
+            </a>
+        </li>
+        {{end}}
+    </ul>
+</section>
+
+<!-- Projects Section -->
+<section class="my-8">
+    <h2 class="text-3xl font-semibold mb-4 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <g stroke-width="0"></g>
+            <g stroke-linecap="round" stroke-linejoin="round"></g>
+            <g>
+                <path d="M17 7.82959L18.6965 9.35641C20.239 10.7447 21.0103 11.4389 21.0103 12.3296C21.0103 13.2203 20.239 13.9145 18.6965 15.3028L17 16.8296"
+                      stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M13.9868 5L12 12.4149L10.0132 19.8297" stroke-width="1.5"
+                      stroke-linecap="round"></path>
+                <path d="M7.00005 7.82959L5.30358 9.35641C3.76102 10.7447 2.98975 11.4389 2.98975 12.3296C2.98975 13.2203 3.76102 13.9145 5.30358 15.3028L7.00005 16.8296"
+                      stroke-width="1.5" stroke-linecap="round"></path>
+            </g>
+        </svg>
+        Projects
+    </h2>
+    <hr/>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {{range .Projects}}
+        <div class="space-y-4 my-4 p-4 rounded-lg hover:bg-neutral-100 dark:hover:bg-gray-500 cursor-pointer hover:scale-[1.1] transition duration-300">
+            <a href="{{.Linkable.Slug}}">
+                <h3 class="text-xl font-bold text-gray-600 dark:text-gray-200">{{.Linkable.Title}}</h3>
+                <p class="text-gray-400 dark:text-gray-600">Tech: {{Join .Technologies ", "}}</p>
+                <p class="text-gray-600 dark:text-gray-400">{{.Linkable.Description}}</p>
+            </a>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}
